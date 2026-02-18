@@ -187,24 +187,20 @@ if __name__ == "__main__":
     window_size = 32
     step = 16
     dx, dy = 1, 0
-    levels = 32  # number of gray levels to quantize to (e.g., 8, 16, 32, 64)
+    levels = 32  
 
-    # 1) Own GLCM + sliding window maps (quantized + scaled back for thresholds)
     var_map, cont_map, ent_map = compute_sliding_window_features(
         img, window_size=window_size, step=step, levels=levels, dx=dx, dy=dy
     )
     glcm_mask_small = threshold_features(var_map, cont_map, ent_map, var_thresh=50, cont_thresh=100, ent_thresh=4)
     glcm_mask = upscale_feature_map(glcm_mask_small, img.shape, window_size, step).astype(np.uint8)
 
-    # 3) First-order texture (manual) + threshold
     fo_var_map, fo_ent_map = first_order_texture(img, window_size=window_size, step=step)
     first_order_mask_small = ((fo_var_map > 200) & (fo_ent_map > 4)).astype(np.uint8) * 255
     first_order_mask = upscale_feature_map(first_order_mask_small, img.shape, window_size, step).astype(np.uint8)
 
-    # 3) First-order texture (built-in entropy) 
     fo_var_builtin, fo_ent_builtin = first_order_texture_builtin(img, radius=8)
 
-    # 4) Existing implementation (skimage graycomatrix/graycoprops) for comparison (quantized + scaled back)
     var_map_ref, cont_map_ref, ent_map_ref = existing_glcm_implementation(
         img, window_size=window_size, step=step, levels=levels, dx=dx, dy=dy
     )
